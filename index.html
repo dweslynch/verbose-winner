@@ -4,16 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Code Scanner</title>
+  <title>Zyn Scanner</title>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     html, body {
       width: 100%; height: 100%;
-      background: #0f172a;
+      background: #041413;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #e2f5f3;
     }
 
     /* ── Welcome screen ───────────────────────────────────── */
@@ -21,11 +22,11 @@
       position: fixed;
       inset: 0;
       z-index: 20;
-      background: #0a0f1e;
+      background: #041413;
       background-image:
-        radial-gradient(ellipse at 20% 50%, rgba(37, 99, 235, 0.14) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 15%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
-        radial-gradient(ellipse at 60% 90%, rgba(16, 185, 129, 0.06) 0%, transparent 45%);
+        radial-gradient(ellipse at 20% 50%, rgba(0, 201, 167, 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 15%, rgba(0, 149, 182, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 90%, rgba(0, 201, 167, 0.06) 0%, transparent 45%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -43,18 +44,18 @@
       width: 100%;
       text-align: center;
       padding: 36px 28px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0, 201, 167, 0.04);
+      border: 1px solid rgba(0, 201, 167, 0.15);
       border-radius: 28px;
-      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(0, 201, 167, 0.08);
     }
 
     #welcome-icon {
       width: 76px;
       height: 76px;
-      background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(124, 58, 237, 0.2));
+      background: linear-gradient(135deg, rgba(0, 201, 167, 0.2), rgba(0, 149, 182, 0.15));
       border-radius: 22px;
-      border: 1px solid rgba(96, 165, 250, 0.25);
+      border: 1px solid rgba(0, 201, 167, 0.3);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -62,57 +63,58 @@
     }
 
     @keyframes iconPulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0), 0 0 20px rgba(96, 165, 250, 0.15); }
-      50%       { box-shadow: 0 0 0 10px rgba(96, 165, 250, 0), 0 0 40px rgba(96, 165, 250, 0.3); }
+      0%, 100% { box-shadow: 0 0 20px rgba(0, 201, 167, 0.15); }
+      50%       { box-shadow: 0 0 40px rgba(0, 201, 167, 0.35); }
     }
 
     #welcome-card h1 {
       font-size: 30px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      background: linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%);
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #00c9a7 0%, #7fffd4 60%, #00b4d8 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
     .version-badge {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: rgba(255, 255, 255, 0.35);
+      background: rgba(0, 201, 167, 0.08);
+      border: 1px solid rgba(0, 201, 167, 0.2);
+      color: rgba(0, 201, 167, 0.5);
       font-size: 11px;
       font-family: 'Courier New', monospace;
       padding: 3px 10px;
       border-radius: 20px;
       margin-top: -8px;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
     }
 
     #welcome-card p {
       font-size: 15px;
-      color: rgba(255, 255, 255, 0.45);
+      color: rgba(226, 245, 243, 0.45);
       line-height: 1.6;
     }
 
     #start-btn {
       margin-top: 8px;
       width: 100%;
-      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-      box-shadow: 0 4px 24px rgba(37, 99, 235, 0.45);
-      color: #fff;
+      background: linear-gradient(135deg, #00c9a7 0%, #0097b2 100%);
+      box-shadow: 0 4px 24px rgba(0, 201, 167, 0.4);
+      color: #041413;
       border: none;
       border-radius: 14px;
       padding: 16px;
       font-size: 16px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      transition: box-shadow 0.15s;
     }
     #start-btn:active {
-      background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
-      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+      background: linear-gradient(135deg, #00a896 0%, #0082a0 100%);
+      box-shadow: 0 2px 10px rgba(0, 201, 167, 0.25);
     }
 
     /* ── Scanner UI ───────────────────────────────────────── */
@@ -137,26 +139,40 @@
 
     #status-banner {
       width: 100%;
-      background: linear-gradient(180deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.5) 100%);
+      background: linear-gradient(180deg, rgba(4,20,19,0.85) 0%, rgba(4,20,19,0.55) 100%);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      color: #fff;
+      border-bottom: 1px solid rgba(0, 201, 167, 0.12);
       padding: 12px 16px 10px;
       padding-top: max(12px, env(safe-area-inset-top));
     }
 
+    #status-banner-inner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #app-label {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #00c9a7;
+      flex-shrink: 0;
+    }
+
     #status {
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.01em;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(226, 245, 243, 0.7);
     }
 
     #detected-text {
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.4);
+      font-size: 10px;
+      color: rgba(0, 201, 167, 0.4);
       margin-top: 5px;
-      min-height: 16px;
+      min-height: 14px;
       word-break: break-all;
       font-family: 'Courier New', monospace;
     }
@@ -172,16 +188,16 @@
     #reticle svg {
       width: min(65vw, 65vh);
       height: min(65vw, 65vh);
-      filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.5));
+      filter: drop-shadow(0 0 8px rgba(0, 201, 167, 0.6));
     }
 
     #scan-line {
       position: absolute;
       width: min(65vw, 65vh);
       height: 2px;
-      background: linear-gradient(90deg, transparent 0%, #60a5fa 30%, #a78bfa 50%, #60a5fa 70%, transparent 100%);
+      background: linear-gradient(90deg, transparent 0%, #00c9a7 30%, #7fffd4 50%, #00c9a7 70%, transparent 100%);
       filter: blur(1px);
-      box-shadow: 0 0 10px rgba(96, 165, 250, 0.7);
+      box-shadow: 0 0 10px rgba(0, 201, 167, 0.7);
       animation: scanLine 2.5s ease-in-out infinite;
       pointer-events: none;
     }
@@ -198,11 +214,10 @@
       position: fixed;
       bottom: 0; left: 0; right: 0;
       z-index: 2;
-      background: rgba(5, 8, 22, 0.93);
-      border-top: 1px solid rgba(96, 165, 250, 0.18);
+      background: rgba(4, 20, 18, 0.94);
+      border-top: 1px solid rgba(0, 201, 167, 0.2);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
-      color: #fff;
       max-height: 45vh;
       display: flex;
       flex-direction: column;
@@ -214,40 +229,41 @@
       align-items: center;
       justify-content: space-between;
       padding: 11px 14px;
-      background: rgba(255, 255, 255, 0.025);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      background: rgba(0, 201, 167, 0.03);
+      border-bottom: 1px solid rgba(0, 201, 167, 0.08);
       flex-shrink: 0;
     }
 
     #count {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(0, 201, 167, 0.5);
+    }
+
+    #copy-btn {
+      background: linear-gradient(135deg, #00c9a7, #0097b2);
+      box-shadow: 0 2px 10px rgba(0, 201, 167, 0.35);
+      color: #041413;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 16px;
       font-size: 12px;
       font-weight: 700;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.5);
-    }
-
-    #copy-btn {
-      background: linear-gradient(135deg, #2563eb, #4f46e5);
-      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.4);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 7px 16px;
-      font-size: 13px;
-      font-weight: 600;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      transition: box-shadow 0.15s;
     }
     #copy-btn:active {
-      background: linear-gradient(135deg, #1d4ed8, #4338ca);
+      background: linear-gradient(135deg, #00a896, #0082a0);
       box-shadow: none;
     }
     #copy-btn:disabled {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.07);
       box-shadow: none;
-      color: rgba(255, 255, 255, 0.25);
+      color: rgba(255, 255, 255, 0.2);
       cursor: default;
     }
 
@@ -264,9 +280,8 @@
     }
 
     #code-list li {
-      padding: 10px 14px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      color: #cbd5e1;
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(0, 201, 167, 0.06);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -274,11 +289,9 @@
     }
 
     #code-list li:first-child {
-      background: rgba(96, 165, 250, 0.07);
-      border-left: 3px solid rgba(96, 165, 250, 0.55);
+      background: rgba(0, 201, 167, 0.07);
+      border-left: 3px solid rgba(0, 201, 167, 0.5);
     }
-
-    #code-list li:first-child .code-text { color: #93c5fd; }
 
     .code-left {
       display: flex;
@@ -287,10 +300,37 @@
       min-width: 0;
     }
 
-    .code-text {
+    /* Character-by-character inputs */
+    .char-inputs {
+      display: flex;
+      gap: 1px;
+    }
+
+    .char-input {
+      width: 19px;
+      height: 28px;
+      text-align: center;
+      background: transparent;
+      border: none;
+      border-bottom: 1.5px solid rgba(0, 201, 167, 0.2);
+      color: #b2ede5;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 15px;
-      letter-spacing: 0.08em;
+      font-size: 14px;
+      letter-spacing: 0;
+      caret-color: #00c9a7;
+      outline: none;
+      padding: 0;
+      -webkit-appearance: none;
+      border-radius: 0;
+    }
+
+    #code-list li:first-child .char-input { color: #5ff0d5; }
+
+    .char-input:focus {
+      border-bottom-color: #00c9a7;
+      background: rgba(0, 201, 167, 0.1);
+      border-radius: 3px 3px 0 0;
+      color: #e2f5f3;
     }
 
     .conf-badge {
@@ -298,15 +338,16 @@
       font-family: 'Courier New', monospace;
       padding: 2px 7px;
       border-radius: 10px;
-      background: rgba(255, 255, 255, 0.07);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 201, 167, 0.07);
+      border: 1px solid rgba(0, 201, 167, 0.15);
+      color: rgba(0, 201, 167, 0.6);
       flex-shrink: 0;
     }
 
     .delete-btn {
       background: none;
       border: none;
-      color: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.18);
       font-size: 18px;
       line-height: 1;
       cursor: pointer;
@@ -319,9 +360,9 @@
     #empty-msg {
       padding: 16px;
       font-size: 13px;
-      color: rgba(255, 255, 255, 0.25);
+      color: rgba(0, 201, 167, 0.25);
       text-align: center;
-      letter-spacing: 0.01em;
+      letter-spacing: 0.02em;
     }
   </style>
 </head>
@@ -331,14 +372,17 @@
   <div id="welcome">
     <div id="welcome-card">
       <div id="welcome-icon">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-          <circle cx="12" cy="13" r="4"/>
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <!-- Outer ring -->
+          <circle cx="20" cy="20" r="17" stroke="#00c9a7" stroke-width="1.5"/>
+          <!-- Z mark -->
+          <path d="M13 13.5 H27 L13 26.5 H27" stroke="#00c9a7" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <h1>Code Scanner</h1>
-      <span class="version-badge">v0.05</span>
-      <p>Point your camera at text containing a 10-character alphanumeric code. Codes are captured automatically.</p>
+      <h1>Zyn Scanner</h1>
+      <span class="version-badge">v0.07</span>
+      <p>Scan Zyn reward codes with your camera. Codes are captured and collected automatically.</p>
       <button id="start-btn">Start Scanning</button>
     </div>
   </div>
@@ -348,7 +392,10 @@
 
   <div id="overlay">
     <div id="status-banner">
-      <div id="status">Starting…</div>
+      <div id="status-banner-inner">
+        <span id="app-label">Zyn</span>
+        <span id="status">Starting…</span>
+      </div>
       <div id="detected-text"></div>
     </div>
     <div id="reticle">
@@ -360,13 +407,13 @@
           </filter>
         </defs>
         <g filter="url(#bracket-glow)">
-          <path d="M20 60 L20 20 L60 20"      stroke="white" stroke-width="3.5" stroke-linecap="round"/>
-          <path d="M140 20 L180 20 L180 60"   stroke="white" stroke-width="3.5" stroke-linecap="round"/>
-          <path d="M180 140 L180 180 L140 180" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
-          <path d="M60 180 L20 180 L20 140"   stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M20 60 L20 20 L60 20"      stroke="#00c9a7" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M140 20 L180 20 L180 60"   stroke="#00c9a7" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M180 140 L180 180 L140 180" stroke="#00c9a7" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M60 180 L20 180 L20 140"   stroke="#00c9a7" stroke-width="3.5" stroke-linecap="round"/>
         </g>
-        <line x1="97" y1="100" x2="103" y2="100" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round"/>
-        <line x1="100" y1="97"  x2="100" y2="103" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="97" y1="100" x2="103" y2="100" stroke="rgba(0,201,167,0.4)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="100" y1="97"  x2="100" y2="103" stroke="rgba(0,201,167,0.4)" stroke-width="2" stroke-linecap="round"/>
       </svg>
       <div id="scan-line"></div>
     </div>
@@ -378,13 +425,13 @@
       <button id="copy-btn" disabled>Copy All</button>
     </div>
     <div id="code-list-wrap">
-      <p id="empty-msg">No codes scanned yet</p>
+      <p id="empty-msg">No reward codes scanned yet</p>
       <ul id="code-list"></ul>
     </div>
   </div>
 
   <script>
-    const VERSION = '0.05';
+    const VERSION = '0.07';
 
     const video      = document.getElementById('video');
     const statusEl   = document.getElementById('status');
@@ -394,7 +441,7 @@
     const copyBtn    = document.getElementById('copy-btn');
     const emptyMsg   = document.getElementById('empty-msg');
 
-    // Map<normalizedCode, { confidence, li, confSpan }>
+    // Map<upperCaseKey, { confidence, display, li, inputs, confSpan, currentKey }>
     const codes = new Map();
     let scanning = false;
 
@@ -440,7 +487,7 @@
         return;
       }
 
-      statusEl.textContent = 'Ready — point at a 10-character code';
+      statusEl.textContent = 'Ready — point at a reward code';
       startScanLoop(worker);
     }
 
@@ -462,34 +509,30 @@
         try {
           const { data } = await worker.recognize(canvas);
 
-          // Show raw detected text as feedback
           const trimmed = (data.text || '').replace(/\s+/g, ' ').trim();
           detectedEl.textContent = trimmed
             ? 'Detected: ' + (trimmed.length > 80 ? trimmed.slice(0, 80) + '…' : trimmed)
             : '';
 
-          // Build per-word confidence lookup (fallback)
+          // Per-word confidence lookup (fallback)
           const wordConf = new Map();
           for (const word of (data.words || [])) {
             const t = word.text.trim().toUpperCase();
             if (t) wordConf.set(t, word.confidence);
           }
 
-          // Build symbol-level confidence lookup: join all symbols into a
-          // string, find each matched code's position, average char confidences
-          const symbols    = data.symbols || [];
-          const symbolText = symbols.map(s => s.text).join('');
+          // Symbol-level confidence: average over matched characters
+          const symbols     = data.symbols || [];
+          const symbolText  = symbols.map(s => s.text).join('');
           const symbolTextUp = symbolText.toUpperCase();
 
-          function symbolConfFor(code) {
-            const idx = symbolTextUp.indexOf(code.toUpperCase());
+          function symbolConfFor(raw) {
+            const idx = symbolTextUp.indexOf(raw.toUpperCase());
             if (idx < 0) return null;
-            const slice = symbols.slice(idx, idx + code.length);
+            const slice = symbols.slice(idx, idx + raw.length);
             return slice.reduce((sum, s) => sum + s.confidence, 0) / slice.length;
           }
 
-          // Match against full text for maximum recall — word tokenizer can
-          // miss codes that have punctuation attached or unusual spacing
           const matches = [...new Set((data.text || '').match(codeRe) || [])];
           for (const raw of matches) {
             if (/[A-Za-z]/.test(raw) && /[0-9]/.test(raw)) {
@@ -502,31 +545,27 @@
           }
         } catch (_) {}
 
-        statusEl.textContent = 'Ready — point at a 10-character code';
+        statusEl.textContent = 'Ready — point at a reward code';
         scanning = false;
       }, 1000);
     }
 
     // ── Confidence-aware dedup ───────────────────────────────
-    // Map is keyed by uppercase for case-insensitive dedup;
-    // original case is preserved in entry.display for rendering.
     function processCode(raw, confidence) {
       const key = raw.toUpperCase();
 
-      // Exact match: update confidence + display if improved
       if (codes.has(key)) {
         const entry = codes.get(key);
         if (confidence > entry.confidence) {
           entry.confidence = confidence;
           entry.display    = raw;
-          entry.codeSpan.textContent = raw;
+          for (let i = 0; i < raw.length; i++) entry.inputs[i].value = raw[i];
           entry.confSpan.textContent = Math.round(confidence) + '%';
           entry.confSpan.style.color = confColor(confidence);
         }
         return;
       }
 
-      // Near-duplicate: hamming distance ≤ 1 on normalized keys
       for (const [existingKey, entry] of codes) {
         if (hammingDistance(key, existingKey) <= 1) {
           if (confidence > entry.confidence) {
@@ -538,8 +577,20 @@
         }
       }
 
-      // Genuinely new code
       addCodeToList(raw, confidence);
+    }
+
+    // ── Sync edited code back to the Map ────────────────────
+    function syncCode(entry) {
+      const newRaw = entry.inputs.map(i => i.value).join('');
+      if (newRaw.length !== 10) return;
+      const newKey = newRaw.toUpperCase();
+      if (newKey !== entry.currentKey) {
+        codes.delete(entry.currentKey);
+        entry.currentKey = newKey;
+        entry.display    = newRaw;
+        codes.set(newKey, entry);
+      }
     }
 
     // ── DOM ──────────────────────────────────────────────────
@@ -552,46 +603,80 @@
       const left = document.createElement('div');
       left.className = 'code-left';
 
-      const codeSpan = document.createElement('span');
-      codeSpan.className = 'code-text';
-      codeSpan.textContent = raw;
+      // 10 individual character inputs
+      const charWrap = document.createElement('div');
+      charWrap.className = 'char-inputs';
+
+      const inputs = [];
+      const entry  = { confidence, display: raw, li, inputs, confSpan: null, currentKey: key };
+
+      for (let i = 0; i < raw.length; i++) {
+        const inp = document.createElement('input');
+        inp.type      = 'text';
+        inp.maxLength = 1;
+        inp.value     = raw[i];
+        inp.className = 'char-input';
+        inp.setAttribute('autocomplete',   'off');
+        inp.setAttribute('autocorrect',    'off');
+        inp.setAttribute('autocapitalize', 'characters');
+        inp.setAttribute('spellcheck',     'false');
+        inp.setAttribute('inputmode',      'text');
+
+        inp.addEventListener('focus', () => inp.select());
+
+        inp.addEventListener('input', () => {
+          inp.value = inp.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 1);
+          if (inp.value && i < inputs.length - 1) inputs[i + 1].focus();
+          syncCode(entry);
+        });
+
+        inp.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && inp.value === '' && i > 0) {
+            inputs[i - 1].value = '';
+            inputs[i - 1].focus();
+            syncCode(entry);
+          } else if (e.key === 'ArrowLeft'  && i > 0)                inputs[i - 1].focus();
+          else if   (e.key === 'ArrowRight' && i < inputs.length - 1) inputs[i + 1].focus();
+        });
+
+        charWrap.appendChild(inp);
+        inputs.push(inp);
+      }
 
       const confSpan = document.createElement('span');
-      confSpan.className = 'conf-badge';
+      confSpan.className   = 'conf-badge';
       confSpan.textContent = Math.round(confidence) + '%';
       confSpan.style.color = confColor(confidence);
+      entry.confSpan = confSpan;
 
-      left.appendChild(codeSpan);
+      left.appendChild(charWrap);
       left.appendChild(confSpan);
 
       const delBtn = document.createElement('button');
       delBtn.className = 'delete-btn';
       delBtn.textContent = '×';
-      delBtn.setAttribute('aria-label', 'Remove ' + raw);
+      delBtn.setAttribute('aria-label', 'Remove code');
       delBtn.addEventListener('click', () => {
-        codes.delete(key);
+        codes.delete(entry.currentKey);
         li.remove();
-        countEl.textContent = `Scanned Codes (${codes.size})`;
-        if (!codes.size) {
-          emptyMsg.style.display = '';
-          copyBtn.disabled = true;
-        }
+        countEl.textContent = `Reward Codes (${codes.size})`;
+        if (!codes.size) { emptyMsg.style.display = ''; copyBtn.disabled = true; emptyMsg.textContent = 'No reward codes scanned yet'; }
       });
 
       li.appendChild(left);
       li.appendChild(delBtn);
       codeList.prepend(li);
 
-      codes.set(key, { confidence, display: raw, li, codeSpan, confSpan });
-
-      countEl.textContent = `Scanned Codes (${codes.size})`;
+      codes.set(key, entry);
+      countEl.textContent = `Reward Codes (${codes.size})`;
       copyBtn.disabled = false;
     }
 
+    // Copy uses current display value (reflects edits)
     copyBtn.addEventListener('click', async () => {
       if (!codes.size) return;
       try {
-        await navigator.clipboard.writeText([...codes.keys()].join('\n'));
+        await navigator.clipboard.writeText([...codes.values()].map(e => e.display).join('\n'));
         copyBtn.textContent = 'Copied!';
         setTimeout(() => { copyBtn.textContent = 'Copy All'; }, 1500);
       } catch (e) {
