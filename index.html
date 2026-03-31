@@ -132,9 +132,25 @@
       letter-spacing: 0.05em;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     #code-list li:first-child { color: #60a5fa; }  /* newest is highlighted */
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 0 0 12px;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .delete-btn:active { color: #f87171; }
 
     #empty-msg {
       padding: 14px;
@@ -240,7 +256,9 @@
             : '';
 
           // Extract 10-char alphanumeric tokens
-          const matches = [...new Set((text.match(re) || []))];
+          const matches = [...new Set((text.match(re) || []))].filter(
+            c => /[A-Za-z]/.test(c) && /[0-9]/.test(c)
+          );
           for (const code of matches) {
             if (!codes.has(code)) {
               codes.add(code);
@@ -258,7 +276,26 @@
       emptyMsg.style.display = 'none';
 
       const li = document.createElement('li');
-      li.textContent = code;
+
+      const span = document.createElement('span');
+      span.textContent = code;
+
+      const btn = document.createElement('button');
+      btn.className = 'delete-btn';
+      btn.textContent = '×';
+      btn.setAttribute('aria-label', 'Remove ' + code);
+      btn.addEventListener('click', () => {
+        codes.delete(code);
+        li.remove();
+        countEl.textContent = `Scanned Codes (${codes.size})`;
+        if (!codes.size) {
+          emptyMsg.style.display = '';
+          copyBtn.disabled = true;
+        }
+      });
+
+      li.appendChild(span);
+      li.appendChild(btn);
       codeList.prepend(li);
 
       countEl.textContent = `Scanned Codes (${codes.size})`;
