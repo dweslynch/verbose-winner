@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Code Scanner</title>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #000;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    #video {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    /* Overlay: status banner + reticle, sits above video, no pointer events */
+    #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #status-banner {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      padding: 12px 16px 8px;
+      padding-top: max(12px, env(safe-area-inset-top));
+    }
+
+    #status {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    #detected-text {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 4px;
+      min-height: 16px;
+      word-break: break-all;
+    }
+
+    /* Centered aiming reticle */
+    #reticle {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #reticle svg {
+      width: min(65vw, 65vh);
+      height: min(65vw, 65vh);
+    }
+
+    /* Bottom panel: code list */
+    #panel {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 2;
+      background: rgba(0, 0, 0, 0.88);
+      color: #fff;
+      max-height: 45vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    #panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      flex-shrink: 0;
+    }
+
+    #count {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    #copy-btn {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #copy-btn:active { background: #1d4ed8; }
+    #copy-btn:disabled { background: #374151; cursor: default; }
+
+    #code-list-wrap {
+      overflow-y: auto;
+      flex: 1;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #code-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #code-list li {
+      padding: 9px 14px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 15px;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: #e5e7eb;
+    }
+
+    #code-list li:first-child { color: #60a5fa; }  /* newest is highlighted */
+
+    #empty-msg {
+      padding: 14px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.35);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <video id="video" autoplay muted playsinline></video>
+
+  <div id="overlay">
+    <div id="status-banner">
+      <div id="status">Starting…</div>
+      <div id="detected-text"></div>
+    </div>
+    <div id="reticle">
+      <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Corner brackets -->
+        <path d="M20 60 L20 20 L60 20"  stroke="white" stroke-width="4" stroke-linecap="round"/>
+        <path d="M140 20 L180 20 L180 60" stroke="white" stroke-width="4" stroke-linecap="round"/>
+        <path d="M180 140 L180 180 L140 180" stroke="white" stroke-width="4" stroke-linecap="round"/>
+        <path d="M60 180 L20 180 L20 140"  stroke="white" stroke-width="4" stroke-linecap="round"/>
+        <!-- Center crosshair -->
+        <line x1="97" y1="100" x2="103" y2="100" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="100" y1="97" x2="100" y2="103" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <div id="panel">
+    <div id="panel-header">
+      <span id="count">Scanned Codes (0)</span>
+      <button id="copy-btn" disabled>Copy All</button>
+    </div>
+    <div id="code-list-wrap">
+      <p id="empty-msg">No codes scanned yet</p>
+      <ul id="code-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    const video       = document.getElementById('video');
+    const statusEl    = document.getElementById('status');
+    const detectedEl  = document.getElementById('detected-text');
+    const codeList    = document.getElementById('code-list');
+    const countEl     = document.getElementById('count');
+    const copyBtn     = document.getElementById('copy-btn');
+    const emptyMsg    = document.getElementById('empty-msg');
+
+    const codes = new Set();
+    let scanning = false;
+
+    async function start() {
+      statusEl.textContent = 'Loading OCR…';
+
+      let worker;
+      try {
+        worker = await Tesseract.createWorker('eng');
+      } catch (e) {
+        statusEl.textContent = 'Failed to load OCR: ' + e.message;
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 } }
+        });
+        video.srcObject = stream;
+        await video.play();
+      } catch (e) {
+        statusEl.textContent = 'Camera error: ' + e.message;
+        return;
+      }
+
+      statusEl.textContent = 'Ready — point at a 10-character code';
+      startScanLoop(worker);
+    }
+
+    function startScanLoop(worker) {
+      const canvas = document.createElement('canvas');
+      const ctx    = canvas.getContext('2d');
+      const re     = /\b[A-Za-z0-9]{10}\b/g;
+
+      setInterval(async () => {
+        if (scanning || video.readyState < 4) return;
+        scanning = true;
+        statusEl.textContent = 'Scanning…';
+
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+
+        try {
+          const { data: { text } } = await worker.recognize(canvas);
+
+          // Show detected text feedback
+          const trimmed = text.replace(/\s+/g, ' ').trim();
+          detectedEl.textContent = trimmed
+            ? 'Detected: ' + (trimmed.length > 80 ? trimmed.slice(0, 80) + '…' : trimmed)
+            : '';
+
+          // Extract 10-char alphanumeric tokens
+          const matches = [...new Set((text.match(re) || []))];
+          for (const code of matches) {
+            if (!codes.has(code)) {
+              codes.add(code);
+              addCodeToList(code);
+            }
+          }
+        } catch (_) {}
+
+        statusEl.textContent = 'Ready — point at a 10-character code';
+        scanning = false;
+      }, 1000);
+    }
+
+    function addCodeToList(code) {
+      emptyMsg.style.display = 'none';
+
+      const li = document.createElement('li');
+      li.textContent = code;
+      codeList.prepend(li);
+
+      countEl.textContent = `Scanned Codes (${codes.size})`;
+      copyBtn.disabled = false;
+    }
+
+    copyBtn.addEventListener('click', async () => {
+      if (!codes.size) return;
+      try {
+        await navigator.clipboard.writeText([...codes].join('\n'));
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy All'; }, 1500);
+      } catch (e) {
+        copyBtn.textContent = 'Failed';
+        setTimeout(() => { copyBtn.textContent = 'Copy All'; }, 1500);
+      }
+    });
+
+    start();
+  </script>
+</body>
+</html>
