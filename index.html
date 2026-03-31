@@ -11,11 +11,84 @@
 
     html, body {
       width: 100%; height: 100%;
-      background: #000;
+      background: #0f172a;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
+    /* ── Welcome screen ───────────────────────────────────── */
+    #welcome {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      padding-top: max(32px, env(safe-area-inset-top));
+      padding-bottom: max(32px, env(safe-area-inset-bottom));
+    }
+
+    #welcome-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      max-width: 320px;
+      width: 100%;
+      text-align: center;
+    }
+
+    #welcome-icon {
+      width: 72px;
+      height: 72px;
+      background: rgba(37, 99, 235, 0.15);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #welcome-card h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: -0.5px;
+    }
+
+    .version-badge {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-top: -8px;
+    }
+
+    #welcome-card p {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.5);
+      line-height: 1.5;
+    }
+
+    #start-btn {
+      margin-top: 8px;
+      width: 100%;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #start-btn:active { background: #1d4ed8; }
+
+    /* ── Scanner UI ───────────────────────────────────────── */
     #video {
       position: fixed;
       top: 0; left: 0;
@@ -24,7 +97,6 @@
       z-index: 0;
     }
 
-    /* Overlay: status banner + reticle, sits above video, no pointer events */
     #overlay {
       position: fixed;
       top: 0; left: 0;
@@ -57,7 +129,6 @@
       word-break: break-all;
     }
 
-    /* Centered aiming reticle */
     #reticle {
       flex: 1;
       display: flex;
@@ -70,7 +141,7 @@
       height: min(65vw, 65vh);
     }
 
-    /* Bottom panel: code list */
+    /* ── Bottom panel ─────────────────────────────────────── */
     #panel {
       position: fixed;
       bottom: 0; left: 0; right: 0;
@@ -109,7 +180,6 @@
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
-
     #copy-btn:active { background: #1d4ed8; }
     #copy-btn:disabled { background: #374151; cursor: default; }
 
@@ -127,17 +197,35 @@
 
     #code-list li {
       padding: 9px 14px;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 15px;
-      letter-spacing: 0.05em;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       color: #e5e7eb;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
     }
 
-    #code-list li:first-child { color: #60a5fa; }  /* newest is highlighted */
+    #code-list li:first-child .code-text { color: #60a5fa; }
+
+    .code-left {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .code-text {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 15px;
+      letter-spacing: 0.05em;
+    }
+
+    .conf-badge {
+      font-size: 10px;
+      font-family: 'Courier New', monospace;
+      opacity: 0.85;
+      flex-shrink: 0;
+    }
 
     .delete-btn {
       background: none;
@@ -146,7 +234,7 @@
       font-size: 18px;
       line-height: 1;
       cursor: pointer;
-      padding: 0 0 0 12px;
+      padding: 0 0 0 4px;
       flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
     }
@@ -162,6 +250,23 @@
 </head>
 <body>
 
+  <!-- Welcome screen -->
+  <div id="welcome">
+    <div id="welcome-card">
+      <div id="welcome-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      </div>
+      <h1>Code Scanner</h1>
+      <span class="version-badge">v0.03</span>
+      <p>Point your camera at text containing a 10-character alphanumeric code. Codes are captured automatically.</p>
+      <button id="start-btn">Start Scanning</button>
+    </div>
+  </div>
+
+  <!-- Scanner UI -->
   <video id="video" autoplay muted playsinline></video>
 
   <div id="overlay">
@@ -171,14 +276,12 @@
     </div>
     <div id="reticle">
       <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Corner brackets -->
-        <path d="M20 60 L20 20 L60 20"  stroke="white" stroke-width="4" stroke-linecap="round"/>
+        <path d="M20 60 L20 20 L60 20"   stroke="white" stroke-width="4" stroke-linecap="round"/>
         <path d="M140 20 L180 20 L180 60" stroke="white" stroke-width="4" stroke-linecap="round"/>
         <path d="M180 140 L180 180 L140 180" stroke="white" stroke-width="4" stroke-linecap="round"/>
         <path d="M60 180 L20 180 L20 140"  stroke="white" stroke-width="4" stroke-linecap="round"/>
-        <!-- Center crosshair -->
         <line x1="97" y1="100" x2="103" y2="100" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
-        <line x1="100" y1="97" x2="100" y2="103" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="100" y1="97"  x2="100" y2="103" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </div>
   </div>
@@ -195,17 +298,40 @@
   </div>
 
   <script>
-    const video       = document.getElementById('video');
-    const statusEl    = document.getElementById('status');
-    const detectedEl  = document.getElementById('detected-text');
-    const codeList    = document.getElementById('code-list');
-    const countEl     = document.getElementById('count');
-    const copyBtn     = document.getElementById('copy-btn');
-    const emptyMsg    = document.getElementById('empty-msg');
+    const VERSION = '0.03';
 
-    const codes = new Set();
+    const video      = document.getElementById('video');
+    const statusEl   = document.getElementById('status');
+    const detectedEl = document.getElementById('detected-text');
+    const codeList   = document.getElementById('code-list');
+    const countEl    = document.getElementById('count');
+    const copyBtn    = document.getElementById('copy-btn');
+    const emptyMsg   = document.getElementById('empty-msg');
+
+    // Map<normalizedCode, { confidence, li, confSpan }>
+    const codes = new Map();
     let scanning = false;
 
+    // ── Welcome screen ──────────────────────────────────────
+    document.getElementById('start-btn').addEventListener('click', () => {
+      document.getElementById('welcome').style.display = 'none';
+      start();
+    });
+
+    // ── Helpers ─────────────────────────────────────────────
+    function hammingDistance(a, b) {
+      let d = 0;
+      for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) d++;
+      return d;
+    }
+
+    function confColor(pct) {
+      if (pct >= 80) return '#4ade80';
+      if (pct >= 60) return '#facc15';
+      return '#f87171';
+    }
+
+    // ── Camera + OCR init ────────────────────────────────────
     async function start() {
       statusEl.textContent = 'Loading OCR…';
 
@@ -232,10 +358,11 @@
       startScanLoop(worker);
     }
 
+    // ── Scan loop ────────────────────────────────────────────
     function startScanLoop(worker) {
-      const canvas = document.createElement('canvas');
-      const ctx    = canvas.getContext('2d');
-      const re     = /\b[A-Za-z0-9]{10}\b/g;
+      const canvas  = document.createElement('canvas');
+      const ctx     = canvas.getContext('2d');
+      const wordRe  = /^[A-Za-z0-9]{10}$/;
 
       setInterval(async () => {
         if (scanning || video.readyState < 4) return;
@@ -247,22 +374,19 @@
         ctx.drawImage(video, 0, 0);
 
         try {
-          const { data: { text } } = await worker.recognize(canvas);
+          const { data } = await worker.recognize(canvas);
 
-          // Show detected text feedback
-          const trimmed = text.replace(/\s+/g, ' ').trim();
+          // Show raw detected text as feedback
+          const trimmed = (data.text || '').replace(/\s+/g, ' ').trim();
           detectedEl.textContent = trimmed
             ? 'Detected: ' + (trimmed.length > 80 ? trimmed.slice(0, 80) + '…' : trimmed)
             : '';
 
-          // Extract 10-char alphanumeric tokens
-          const matches = [...new Set((text.match(re) || []))].filter(
-            c => /[A-Za-z]/.test(c) && /[0-9]/.test(c)
-          );
-          for (const code of matches) {
-            if (!codes.has(code)) {
-              codes.add(code);
-              addCodeToList(code);
+          // Use word-level results for per-token confidence
+          for (const word of (data.words || [])) {
+            const raw = word.text.trim();
+            if (wordRe.test(raw) && /[A-Za-z]/.test(raw) && /[0-9]/.test(raw)) {
+              processCode(raw.toUpperCase(), word.confidence);
             }
           }
         } catch (_) {}
@@ -272,19 +396,62 @@
       }, 1000);
     }
 
-    function addCodeToList(code) {
+    // ── Confidence-aware dedup ───────────────────────────────
+    function processCode(code, confidence) {
+      // Exact match: update confidence display if improved
+      if (codes.has(code)) {
+        const entry = codes.get(code);
+        if (confidence > entry.confidence) {
+          entry.confidence = confidence;
+          entry.confSpan.textContent = Math.round(confidence) + '%';
+          entry.confSpan.style.color = confColor(confidence);
+        }
+        return;
+      }
+
+      // Near-duplicate: hamming distance ≤ 1 (one misread character)
+      for (const [existing, entry] of codes) {
+        if (hammingDistance(code, existing) <= 1) {
+          if (confidence > entry.confidence) {
+            // Higher-confidence scan wins — replace the old entry
+            codes.delete(existing);
+            entry.li.remove();
+            addCodeToList(code, confidence);
+          }
+          return;
+        }
+      }
+
+      // Genuinely new code
+      addCodeToList(code, confidence);
+    }
+
+    // ── DOM ──────────────────────────────────────────────────
+    function addCodeToList(code, confidence) {
       emptyMsg.style.display = 'none';
 
       const li = document.createElement('li');
 
-      const span = document.createElement('span');
-      span.textContent = code;
+      const left = document.createElement('div');
+      left.className = 'code-left';
 
-      const btn = document.createElement('button');
-      btn.className = 'delete-btn';
-      btn.textContent = '×';
-      btn.setAttribute('aria-label', 'Remove ' + code);
-      btn.addEventListener('click', () => {
+      const codeSpan = document.createElement('span');
+      codeSpan.className = 'code-text';
+      codeSpan.textContent = code;
+
+      const confSpan = document.createElement('span');
+      confSpan.className = 'conf-badge';
+      confSpan.textContent = Math.round(confidence) + '%';
+      confSpan.style.color = confColor(confidence);
+
+      left.appendChild(codeSpan);
+      left.appendChild(confSpan);
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete-btn';
+      delBtn.textContent = '×';
+      delBtn.setAttribute('aria-label', 'Remove ' + code);
+      delBtn.addEventListener('click', () => {
         codes.delete(code);
         li.remove();
         countEl.textContent = `Scanned Codes (${codes.size})`;
@@ -294,9 +461,11 @@
         }
       });
 
-      li.appendChild(span);
-      li.appendChild(btn);
+      li.appendChild(left);
+      li.appendChild(delBtn);
       codeList.prepend(li);
+
+      codes.set(code, { confidence, li, confSpan });
 
       countEl.textContent = `Scanned Codes (${codes.size})`;
       copyBtn.disabled = false;
@@ -305,7 +474,7 @@
     copyBtn.addEventListener('click', async () => {
       if (!codes.size) return;
       try {
-        await navigator.clipboard.writeText([...codes].join('\n'));
+        await navigator.clipboard.writeText([...codes.keys()].join('\n'));
         copyBtn.textContent = 'Copied!';
         setTimeout(() => { copyBtn.textContent = 'Copy All'; }, 1500);
       } catch (e) {
@@ -313,8 +482,6 @@
         setTimeout(() => { copyBtn.textContent = 'Copy All'; }, 1500);
       }
     });
-
-    start();
   </script>
 </body>
 </html>
