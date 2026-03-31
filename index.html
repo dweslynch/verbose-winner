@@ -497,7 +497,7 @@
 
       // Near-duplicate: hamming distance ≤ 1 (one misread character)
       for (const [existing, entry] of codes) {
-        if (hammingDistance(code, existing) <= 2) {
+        if (hammingDistance(code, existing) <= 1) {
           if (confidence > entry.confidence) {
             // Higher-confidence scan wins — replace the old entry
             codes.delete(existing);
