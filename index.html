@@ -21,7 +21,11 @@
       position: fixed;
       inset: 0;
       z-index: 20;
-      background: #0f172a;
+      background: #0a0f1e;
+      background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(37, 99, 235, 0.14) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 15%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 90%, rgba(16, 185, 129, 0.06) 0%, transparent 45%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -38,55 +42,78 @@
       max-width: 320px;
       width: 100%;
       text-align: center;
+      padding: 36px 28px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06);
     }
 
     #welcome-icon {
-      width: 72px;
-      height: 72px;
-      background: rgba(37, 99, 235, 0.15);
-      border-radius: 20px;
+      width: 76px;
+      height: 76px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(124, 58, 237, 0.2));
+      border-radius: 22px;
+      border: 1px solid rgba(96, 165, 250, 0.25);
       display: flex;
       align-items: center;
       justify-content: center;
+      animation: iconPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes iconPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0), 0 0 20px rgba(96, 165, 250, 0.15); }
+      50%       { box-shadow: 0 0 0 10px rgba(96, 165, 250, 0), 0 0 40px rgba(96, 165, 250, 0.3); }
     }
 
     #welcome-card h1 {
-      font-size: 28px;
+      font-size: 30px;
       font-weight: 700;
-      color: #f1f5f9;
       letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .version-badge {
-      background: rgba(255, 255, 255, 0.08);
-      color: rgba(255, 255, 255, 0.4);
-      font-size: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 11px;
       font-family: 'Courier New', monospace;
       padding: 3px 10px;
       border-radius: 20px;
       margin-top: -8px;
+      letter-spacing: 0.05em;
     }
 
     #welcome-card p {
       font-size: 15px;
-      color: rgba(255, 255, 255, 0.5);
-      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.45);
+      line-height: 1.6;
     }
 
     #start-btn {
       margin-top: 8px;
       width: 100%;
-      background: #2563eb;
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+      box-shadow: 0 4px 24px rgba(37, 99, 235, 0.45);
       color: #fff;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 16px;
       font-size: 16px;
       font-weight: 600;
+      letter-spacing: 0.02em;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      transition: box-shadow 0.15s;
     }
-    #start-btn:active { background: #1d4ed8; }
+    #start-btn:active {
+      background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+    }
 
     /* ── Scanner UI ───────────────────────────────────────── */
     #video {
@@ -110,26 +137,32 @@
 
     #status-banner {
       width: 100%;
-      background: rgba(0, 0, 0, 0.6);
+      background: linear-gradient(180deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.5) 100%);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       color: #fff;
-      padding: 12px 16px 8px;
+      padding: 12px 16px 10px;
       padding-top: max(12px, env(safe-area-inset-top));
     }
 
     #status {
       font-size: 14px;
       font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
     #detected-text {
       font-size: 11px;
-      color: rgba(255, 255, 255, 0.5);
-      margin-top: 4px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 5px;
       min-height: 16px;
       word-break: break-all;
+      font-family: 'Courier New', monospace;
     }
 
     #reticle {
+      position: relative;
       flex: 1;
       display: flex;
       align-items: center;
@@ -139,6 +172,25 @@
     #reticle svg {
       width: min(65vw, 65vh);
       height: min(65vw, 65vh);
+      filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.5));
+    }
+
+    #scan-line {
+      position: absolute;
+      width: min(65vw, 65vh);
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, #60a5fa 30%, #a78bfa 50%, #60a5fa 70%, transparent 100%);
+      filter: blur(1px);
+      box-shadow: 0 0 10px rgba(96, 165, 250, 0.7);
+      animation: scanLine 2.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes scanLine {
+      0%   { transform: translateY(calc(-0.5 * min(65vw, 65vh))); opacity: 0; }
+      8%   { opacity: 0.85; }
+      92%  { opacity: 0.85; }
+      100% { transform: translateY(calc(0.5 * min(65vw, 65vh))); opacity: 0; }
     }
 
     /* ── Bottom panel ─────────────────────────────────────── */
@@ -146,7 +198,10 @@
       position: fixed;
       bottom: 0; left: 0; right: 0;
       z-index: 2;
-      background: rgba(0, 0, 0, 0.88);
+      background: rgba(5, 8, 22, 0.93);
+      border-top: 1px solid rgba(96, 165, 250, 0.18);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
       color: #fff;
       max-height: 45vh;
       display: flex;
@@ -158,30 +213,43 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 14px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 11px 14px;
+      background: rgba(255, 255, 255, 0.025);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
       flex-shrink: 0;
     }
 
     #count {
-      font-size: 13px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.8);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
     }
 
     #copy-btn {
-      background: #2563eb;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.4);
       color: #fff;
       border: none;
-      border-radius: 6px;
-      padding: 6px 14px;
+      border-radius: 8px;
+      padding: 7px 16px;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      transition: box-shadow 0.15s;
     }
-    #copy-btn:active { background: #1d4ed8; }
-    #copy-btn:disabled { background: #374151; cursor: default; }
+    #copy-btn:active {
+      background: linear-gradient(135deg, #1d4ed8, #4338ca);
+      box-shadow: none;
+    }
+    #copy-btn:disabled {
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: none;
+      color: rgba(255, 255, 255, 0.25);
+      cursor: default;
+    }
 
     #code-list-wrap {
       overflow-y: auto;
@@ -196,41 +264,49 @@
     }
 
     #code-list li {
-      padding: 9px 14px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      color: #e5e7eb;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
     }
 
-    #code-list li:first-child .code-text { color: #60a5fa; }
+    #code-list li:first-child {
+      background: rgba(96, 165, 250, 0.07);
+      border-left: 3px solid rgba(96, 165, 250, 0.55);
+    }
+
+    #code-list li:first-child .code-text { color: #93c5fd; }
 
     .code-left {
       display: flex;
-      align-items: baseline;
-      gap: 8px;
+      align-items: center;
+      gap: 10px;
       min-width: 0;
     }
 
     .code-text {
       font-family: 'Courier New', Courier, monospace;
       font-size: 15px;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
     }
 
     .conf-badge {
       font-size: 10px;
       font-family: 'Courier New', monospace;
-      opacity: 0.85;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       flex-shrink: 0;
     }
 
     .delete-btn {
       background: none;
       border: none;
-      color: rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.2);
       font-size: 18px;
       line-height: 1;
       cursor: pointer;
@@ -241,10 +317,11 @@
     .delete-btn:active { color: #f87171; }
 
     #empty-msg {
-      padding: 14px;
+      padding: 16px;
       font-size: 13px;
-      color: rgba(255, 255, 255, 0.35);
+      color: rgba(255, 255, 255, 0.25);
       text-align: center;
+      letter-spacing: 0.01em;
     }
   </style>
 </head>
@@ -260,7 +337,7 @@
         </svg>
       </div>
       <h1>Code Scanner</h1>
-      <span class="version-badge">v0.03</span>
+      <span class="version-badge">v0.04</span>
       <p>Point your camera at text containing a 10-character alphanumeric code. Codes are captured automatically.</p>
       <button id="start-btn">Start Scanning</button>
     </div>
@@ -276,13 +353,22 @@
     </div>
     <div id="reticle">
       <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 60 L20 20 L60 20"   stroke="white" stroke-width="4" stroke-linecap="round"/>
-        <path d="M140 20 L180 20 L180 60" stroke="white" stroke-width="4" stroke-linecap="round"/>
-        <path d="M180 140 L180 180 L140 180" stroke="white" stroke-width="4" stroke-linecap="round"/>
-        <path d="M60 180 L20 180 L20 140"  stroke="white" stroke-width="4" stroke-linecap="round"/>
-        <line x1="97" y1="100" x2="103" y2="100" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
-        <line x1="100" y1="97"  x2="100" y2="103" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
+        <defs>
+          <filter id="bracket-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <g filter="url(#bracket-glow)">
+          <path d="M20 60 L20 20 L60 20"      stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M140 20 L180 20 L180 60"   stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M180 140 L180 180 L140 180" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M60 180 L20 180 L20 140"   stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+        </g>
+        <line x1="97" y1="100" x2="103" y2="100" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="100" y1="97"  x2="100" y2="103" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round"/>
       </svg>
+      <div id="scan-line"></div>
     </div>
   </div>
 
@@ -298,7 +384,7 @@
   </div>
 
   <script>
-    const VERSION = '0.03';
+    const VERSION = '0.04';
 
     const video      = document.getElementById('video');
     const statusEl   = document.getElementById('status');
@@ -411,7 +497,7 @@
 
       // Near-duplicate: hamming distance ≤ 1 (one misread character)
       for (const [existing, entry] of codes) {
-        if (hammingDistance(code, existing) <= 1) {
+        if (hammingDistance(code, existing) <= 2) {
           if (confidence > entry.confidence) {
             // Higher-confidence scan wins — replace the old entry
             codes.delete(existing);
