@@ -337,7 +337,7 @@
         </svg>
       </div>
       <h1>Code Scanner</h1>
-      <span class="version-badge">v0.04</span>
+      <span class="version-badge">v0.05</span>
       <p>Point your camera at text containing a 10-character alphanumeric code. Codes are captured automatically.</p>
       <button id="start-btn">Start Scanning</button>
     </div>
@@ -384,7 +384,7 @@
   </div>
 
   <script>
-    const VERSION = '0.04';
+    const VERSION = '0.05';
 
     const video      = document.getElementById('video');
     const statusEl   = document.getElementById('status');
@@ -446,9 +446,9 @@
 
     // ── Scan loop ────────────────────────────────────────────
     function startScanLoop(worker) {
-      const canvas  = document.createElement('canvas');
-      const ctx     = canvas.getContext('2d');
-      const wordRe  = /^[A-Za-z0-9]{10}$/;
+      const canvas = document.createElement('canvas');
+      const ctx    = canvas.getContext('2d');
+      const codeRe = /\b[A-Za-z0-9]{10}\b/g;
 
       setInterval(async () => {
         if (scanning || video.readyState < 4) return;
@@ -468,11 +468,36 @@
             ? 'Detected: ' + (trimmed.length > 80 ? trimmed.slice(0, 80) + '…' : trimmed)
             : '';
 
-          // Use word-level results for per-token confidence
+          // Build per-word confidence lookup (fallback)
+          const wordConf = new Map();
           for (const word of (data.words || [])) {
-            const raw = word.text.trim();
-            if (wordRe.test(raw) && /[A-Za-z]/.test(raw) && /[0-9]/.test(raw)) {
-              processCode(raw.toUpperCase(), word.confidence);
+            const t = word.text.trim().toUpperCase();
+            if (t) wordConf.set(t, word.confidence);
+          }
+
+          // Build symbol-level confidence lookup: join all symbols into a
+          // string, find each matched code's position, average char confidences
+          const symbols    = data.symbols || [];
+          const symbolText = symbols.map(s => s.text).join('');
+          const symbolTextUp = symbolText.toUpperCase();
+
+          function symbolConfFor(code) {
+            const idx = symbolTextUp.indexOf(code.toUpperCase());
+            if (idx < 0) return null;
+            const slice = symbols.slice(idx, idx + code.length);
+            return slice.reduce((sum, s) => sum + s.confidence, 0) / slice.length;
+          }
+
+          // Match against full text for maximum recall — word tokenizer can
+          // miss codes that have punctuation attached or unusual spacing
+          const matches = [...new Set((data.text || '').match(codeRe) || [])];
+          for (const raw of matches) {
+            if (/[A-Za-z]/.test(raw) && /[0-9]/.test(raw)) {
+              const confidence = symbolConfFor(raw)
+                ?? wordConf.get(raw.toUpperCase())
+                ?? data.confidence
+                ?? 50;
+              processCode(raw, confidence);
             }
           }
         } catch (_) {}
@@ -483,37 +508,43 @@
     }
 
     // ── Confidence-aware dedup ───────────────────────────────
-    function processCode(code, confidence) {
-      // Exact match: update confidence display if improved
-      if (codes.has(code)) {
-        const entry = codes.get(code);
+    // Map is keyed by uppercase for case-insensitive dedup;
+    // original case is preserved in entry.display for rendering.
+    function processCode(raw, confidence) {
+      const key = raw.toUpperCase();
+
+      // Exact match: update confidence + display if improved
+      if (codes.has(key)) {
+        const entry = codes.get(key);
         if (confidence > entry.confidence) {
           entry.confidence = confidence;
+          entry.display    = raw;
+          entry.codeSpan.textContent = raw;
           entry.confSpan.textContent = Math.round(confidence) + '%';
           entry.confSpan.style.color = confColor(confidence);
         }
         return;
       }
 
-      // Near-duplicate: hamming distance ≤ 1 (one misread character)
-      for (const [existing, entry] of codes) {
-        if (hammingDistance(code, existing) <= 1) {
+      // Near-duplicate: hamming distance ≤ 1 on normalized keys
+      for (const [existingKey, entry] of codes) {
+        if (hammingDistance(key, existingKey) <= 1) {
           if (confidence > entry.confidence) {
-            // Higher-confidence scan wins — replace the old entry
-            codes.delete(existing);
+            codes.delete(existingKey);
             entry.li.remove();
-            addCodeToList(code, confidence);
+            addCodeToList(raw, confidence);
           }
           return;
         }
       }
 
       // Genuinely new code
-      addCodeToList(code, confidence);
+      addCodeToList(raw, confidence);
     }
 
     // ── DOM ──────────────────────────────────────────────────
-    function addCodeToList(code, confidence) {
+    function addCodeToList(raw, confidence) {
+      const key = raw.toUpperCase();
       emptyMsg.style.display = 'none';
 
       const li = document.createElement('li');
@@ -523,7 +554,7 @@
 
       const codeSpan = document.createElement('span');
       codeSpan.className = 'code-text';
-      codeSpan.textContent = code;
+      codeSpan.textContent = raw;
 
       const confSpan = document.createElement('span');
       confSpan.className = 'conf-badge';
@@ -536,9 +567,9 @@
       const delBtn = document.createElement('button');
       delBtn.className = 'delete-btn';
       delBtn.textContent = '×';
-      delBtn.setAttribute('aria-label', 'Remove ' + code);
+      delBtn.setAttribute('aria-label', 'Remove ' + raw);
       delBtn.addEventListener('click', () => {
-        codes.delete(code);
+        codes.delete(key);
         li.remove();
         countEl.textContent = `Scanned Codes (${codes.size})`;
         if (!codes.size) {
@@ -551,7 +582,7 @@
       li.appendChild(delBtn);
       codeList.prepend(li);
 
-      codes.set(code, { confidence, li, confSpan });
+      codes.set(key, { confidence, display: raw, li, codeSpan, confSpan });
 
       countEl.textContent = `Scanned Codes (${codes.size})`;
       copyBtn.disabled = false;
