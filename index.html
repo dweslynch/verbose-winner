@@ -96,6 +96,47 @@
       line-height: 1.6;
     }
 
+    .api-key-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: left;
+    }
+
+    .api-key-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(0, 201, 167, 0.6);
+    }
+
+    #api-key-input {
+      width: 100%;
+      background: rgba(0, 201, 167, 0.05);
+      border: 1px solid rgba(0, 201, 167, 0.2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-family: 'Courier New', monospace;
+      color: #e2f5f3;
+      outline: none;
+      letter-spacing: 0.04em;
+      -webkit-appearance: none;
+    }
+    #api-key-input::placeholder { color: rgba(226, 245, 243, 0.2); }
+    #api-key-input:focus {
+      border-color: rgba(0, 201, 167, 0.5);
+      background: rgba(0, 201, 167, 0.08);
+    }
+
+    #api-key-error {
+      font-size: 12px;
+      color: #f87171;
+      display: none;
+    }
+
     #start-btn {
       margin-top: 8px;
       width: 100%;
@@ -333,15 +374,39 @@
       color: #e2f5f3;
     }
 
-    .conf-badge {
-      font-size: 10px;
-      font-family: 'Courier New', monospace;
-      padding: 2px 7px;
-      border-radius: 10px;
-      background: rgba(0, 201, 167, 0.07);
-      border: 1px solid rgba(0, 201, 167, 0.15);
-      color: rgba(0, 201, 167, 0.6);
+    /* ── Status indicator ─────────────────────────────────── */
+    .status-icon {
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
+    }
+
+    .status-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(0, 201, 167, 0.2);
+      border-top-color: #00c9a7;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status-success {
+      font-size: 16px;
+      color: #4ade80;
+      line-height: 1;
+    }
+
+    .status-failure {
+      font-size: 16px;
+      color: #f87171;
+      line-height: 1;
     }
 
     .delete-btn {
@@ -381,8 +446,13 @@
         </svg>
       </div>
       <h1>Zyn Scanner</h1>
-      <span class="version-badge">v0.07</span>
-      <p>Scan Zyn reward codes with your camera. Codes are captured and collected automatically.</p>
+      <span class="version-badge">v0.08</span>
+      <p>Scan Zyn reward codes with your camera. Codes are captured and submitted automatically.</p>
+      <div class="api-key-wrap">
+        <label class="api-key-label" for="api-key-input">API Key</label>
+        <input id="api-key-input" type="password" placeholder="Paste your API key" autocomplete="off" spellcheck="false">
+        <span id="api-key-error">Please enter your API key to continue.</span>
+      </div>
       <button id="start-btn">Start Scanning</button>
     </div>
   </div>
@@ -431,7 +501,8 @@
   </div>
 
   <script>
-    const VERSION = '0.07';
+    const VERSION = '0.08';
+    const API_BASE = 'https://zzbqzv2zi8.execute-api.us-east-2.amazonaws.com/Omega';
 
     const video      = document.getElementById('video');
     const statusEl   = document.getElementById('status');
@@ -441,14 +512,29 @@
     const copyBtn    = document.getElementById('copy-btn');
     const emptyMsg   = document.getElementById('empty-msg');
 
-    // Map<upperCaseKey, { confidence, display, li, inputs, confSpan, currentKey }>
+    // Map<upperCaseKey, { confidence, display, li, inputs, statusIcon, currentKey }>
     const codes = new Map();
     let scanning = false;
+    let apiKey   = '';
 
     // ── Welcome screen ──────────────────────────────────────
     document.getElementById('start-btn').addEventListener('click', () => {
+      const keyInput = document.getElementById('api-key-input');
+      const keyError = document.getElementById('api-key-error');
+      const val = keyInput.value.trim();
+      if (!val) {
+        keyError.style.display = 'block';
+        keyInput.focus();
+        return;
+      }
+      keyError.style.display = 'none';
+      apiKey = val;
       document.getElementById('welcome').style.display = 'none';
       start();
+    });
+
+    document.getElementById('api-key-input').addEventListener('input', () => {
+      document.getElementById('api-key-error').style.display = 'none';
     });
 
     // ── Helpers ─────────────────────────────────────────────
@@ -458,10 +544,43 @@
       return d;
     }
 
-    function confColor(pct) {
-      if (pct >= 80) return '#4ade80';
-      if (pct >= 60) return '#facc15';
-      return '#f87171';
+    // ── API submission ───────────────────────────────────────
+    async function submitCode(key, entry) {
+      setStatus(entry, 'pending');
+      try {
+        const res = await fetch(API_BASE, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+          },
+          body: JSON.stringify({ code: key }),
+        });
+        setStatus(entry, res.ok ? 'success' : 'failure');
+      } catch (_) {
+        setStatus(entry, 'failure');
+      }
+    }
+
+    function setStatus(entry, state) {
+      entry.status = state;
+      const icon = entry.statusIcon;
+      icon.innerHTML = '';
+      if (state === 'pending') {
+        const spinner = document.createElement('div');
+        spinner.className = 'status-spinner';
+        icon.appendChild(spinner);
+      } else if (state === 'success') {
+        const check = document.createElement('span');
+        check.className = 'status-success';
+        check.textContent = '✓';
+        icon.appendChild(check);
+      } else {
+        const x = document.createElement('span');
+        x.className = 'status-failure';
+        x.textContent = '✕';
+        icon.appendChild(x);
+      }
     }
 
     // ── Camera + OCR init ────────────────────────────────────
@@ -522,8 +641,8 @@
           }
 
           // Symbol-level confidence: average over matched characters
-          const symbols     = data.symbols || [];
-          const symbolText  = symbols.map(s => s.text).join('');
+          const symbols      = data.symbols || [];
+          const symbolText   = symbols.map(s => s.text).join('');
           const symbolTextUp = symbolText.toUpperCase();
 
           function symbolConfFor(raw) {
@@ -554,18 +673,18 @@
     function processCode(raw, confidence) {
       const key = raw.toUpperCase();
 
+      // Exact match: update display if higher confidence, no re-submit
       if (codes.has(key)) {
         const entry = codes.get(key);
         if (confidence > entry.confidence) {
           entry.confidence = confidence;
           entry.display    = raw;
           for (let i = 0; i < raw.length; i++) entry.inputs[i].value = raw[i];
-          entry.confSpan.textContent = Math.round(confidence) + '%';
-          entry.confSpan.style.color = confColor(confidence);
         }
         return;
       }
 
+      // Near-duplicate (hamming ≤ 1): replace + re-submit only if higher confidence
       for (const [existingKey, entry] of codes) {
         if (hammingDistance(key, existingKey) <= 1) {
           if (confidence > entry.confidence) {
@@ -608,7 +727,10 @@
       charWrap.className = 'char-inputs';
 
       const inputs = [];
-      const entry  = { confidence, display: raw, li, inputs, confSpan: null, currentKey: key };
+      const statusIcon = document.createElement('div');
+      statusIcon.className = 'status-icon';
+
+      const entry = { confidence, display: raw, li, inputs, statusIcon, currentKey: key, status: 'pending' };
 
       for (let i = 0; i < raw.length; i++) {
         const inp = document.createElement('input');
@@ -643,14 +765,8 @@
         inputs.push(inp);
       }
 
-      const confSpan = document.createElement('span');
-      confSpan.className   = 'conf-badge';
-      confSpan.textContent = Math.round(confidence) + '%';
-      confSpan.style.color = confColor(confidence);
-      entry.confSpan = confSpan;
-
       left.appendChild(charWrap);
-      left.appendChild(confSpan);
+      left.appendChild(statusIcon);
 
       const delBtn = document.createElement('button');
       delBtn.className = 'delete-btn';
@@ -670,6 +786,8 @@
       codes.set(key, entry);
       countEl.textContent = `Reward Codes (${codes.size})`;
       copyBtn.disabled = false;
+
+      submitCode(key, entry);
     }
 
     // Copy uses current display value (reflects edits)
