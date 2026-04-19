@@ -590,6 +590,10 @@
       let worker;
       try {
         worker = await Tesseract.createWorker('eng');
+        await worker.setParameters({
+          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+          tessedit_pageseg_mode: '11',
+        });
       } catch (e) {
         statusEl.textContent = 'Failed to load OCR: ' + e.message;
         return;
@@ -614,7 +618,7 @@
     function startScanLoop(worker) {
       const canvas = document.createElement('canvas');
       const ctx    = canvas.getContext('2d');
-      const codeRe = /\b[A-Za-z0-9]{10}\b/g;
+      const codeRe = /\b[A-Za-z0-9]{10,11}\b/g;
 
       setInterval(async () => {
         if (scanning || video.readyState < 4) return;
@@ -702,7 +706,7 @@
     // ── Sync edited code back to the Map ────────────────────
     function syncCode(entry) {
       const newRaw = entry.inputs.map(i => i.value).join('');
-      if (newRaw.length !== 10) return;
+      if (newRaw.length !== entry.inputs.length) return;
       const newKey = newRaw.toUpperCase();
       if (newKey !== entry.currentKey) {
         codes.delete(entry.currentKey);
@@ -787,7 +791,7 @@
       countEl.textContent = `Reward Codes (${codes.size})`;
       copyBtn.disabled = false;
 
-      submitCode(key, entry);
+      submitCode(raw, entry);
     }
 
     // Copy uses current display value (reflects edits)
